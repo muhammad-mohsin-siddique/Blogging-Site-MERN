@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import './Login.css';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, onSwitchToSignup }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -16,7 +15,6 @@ const Login = ({ onLogin }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -26,20 +24,27 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      // Simulate login API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Basic validation
-      if (!formData.email || !formData.password) {
-        throw new Error('Please fill in all fields');
+      const email = formData.email.trim().toLowerCase();
+      const password = formData.password.trim();
+
+      const users = JSON.parse(localStorage.getItem('blogUsers')) || [];
+      const user = users.find(u => 
+        u.email && 
+        u.email.trim().toLowerCase() === email && 
+        u.password === password
+      );
+
+      if (!user) {
+        throw new Error('Invalid credentials! Please sign up first.');
       }
-      
-      // Mock successful login
+
       if (onLogin) {
-        onLogin({ email: formData.email, name: 'User' });
+        onLogin(user);
       }
+
     } catch (err) {
-      setError(err.message || 'Login failed');
+      console.error('Login error:', err);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -90,6 +95,16 @@ const Login = ({ onLogin }) => {
 
           <div className="login-footer">
             <a href="#forgot" className="forgot-link">Forgot Password?</a>
+            <p className="signup-prompt">
+              Don't have an account?{' '}
+              <button 
+                type="button" 
+                className="signup-toggle" 
+                onClick={onSwitchToSignup}
+              >
+                Sign Up
+              </button>
+            </p>
           </div>
         </form>
       </div>
